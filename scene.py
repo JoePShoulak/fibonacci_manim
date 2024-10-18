@@ -1,19 +1,14 @@
 from manim import *
 
-
-def musicStaff():
+def musicStaff(signature=[4,4]):
   THIN = 1.25
   THICK = 2.5
 
   # note lines
-  noteLines = []
+  noteLines = [Line(LEFT, RIGHT, stroke_width=THIN) for i in range(5)]
 
-  for i in range(5):
-    line = Line(LEFT, RIGHT, stroke_width=THIN)
-
-    if i != 0: line.next_to(noteLines[-1], DOWN)
-
-    noteLines += line
+  for i in range(1, len(noteLines)):
+      noteLines[i].next_to(noteLines[i-1], DOWN)
 
   # bar lines
   barLines = [
@@ -22,7 +17,13 @@ def musicStaff():
     Line(noteLines[0].get_end(), noteLines[4].get_end(), stroke_width=THICK)
   ]
 
-  return VGroup(*noteLines, *barLines)
+  # time signature
+  numHeight = noteLines[0].get_start()[1] - noteLines[2].get_start()[1]
+  signature = [MathTex(signature[i]).scale_to_fit_height(numHeight) for i in [0, 1]]
+  signature[0].align_to(noteLines[0].get_start(), UL)
+  signature[1].next_to(signature[0], DOWN, buff=0)
+
+  return VGroup(*noteLines, *barLines, *signature)
 
 class Music(Scene):
   def construct(self):
