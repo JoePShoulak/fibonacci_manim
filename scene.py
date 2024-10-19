@@ -1,6 +1,5 @@
 from manim import *
-from music import *
-from music import NoteTypes as NT
+from music import Measure, NoteTypes as NT
 import itertools
 
 def chooseKFromArray(k, array):
@@ -31,25 +30,54 @@ class Music(Scene):
   def construct(self):
     measureGroups = []
 
-    mes = Measure([], [0, 4])
-    num = Tex(1).next_to(mes, DOWN) # .add_updater(lambda n: n.scale_to_fit_height(0.5))
-    measureGroups += [VGroup(mes, num).center().to_edge(UP)]
+    def mesNumUpdater(mesNum):
+      mesNum[1].next_to(mesNum[0][-1].noteLines[2], LEFT).scale_to_fit_height(max(mesNum[1].height, 0.4))
+
+    mes = VGroup(Measure([], [0, 4]))
+    num = Tex(1).scale(2).next_to(mes, LEFT).next_to(mes[-1].noteLines[2], LEFT)
+    mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
+    measureGroups += [mesNum]
 
     self.play(Write(measureGroups[-1][0]), reverse=True)
     self.play(Write(measureGroups[-1][1]))
-    self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).to_corner(UL).shift(DOWN))
+    self.play(measureGroups[-1].animate.scale(0.6).to_corner(UL).shift(DOWN*2))
 
-    for i in range(1,5):
+    for i in range(1,4):
       signature = [i, 4]
       mes = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
       mes.arrange(LEFT).center()
-      num = Tex(str(len(mes))).next_to(mes, DOWN)
-      measureGroups += [VGroup(mes, num).center().to_edge(UP)]
-      if i == 4: mes.scale(0.5).next_to(num, UP)
+      num = Tex(str(len(mes))).scale(2).next_to(mes[-1].noteLines[2], LEFT)
+      mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
+      measureGroups += [mesNum]
 
       self.play(Write(measureGroups[-1][0]), reverse=True)
       self.play(Write(measureGroups[-1][1]))
-      self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
+      self.play(measureGroups[-1].animate.scale(0.6).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
+
+    mes = VGroup(*[Measure(m, [4, 4]) for m in fibonacciNotes([4, 4])])
+    mes.arrange(LEFT).center().scale(0.6)
+    num = Tex(str(len(mes))).scale(1.2).next_to(mes[-1].noteLines[2], LEFT)
+    mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
+    measureGroups += [mesNum]
+
+    self.play(Write(measureGroups[-1][0]), reverse=True)
+    self.play(Write(measureGroups[-1][1]))
+    self.play(measureGroups[-1].animate.next_to(measureGroups[-2], DOWN).to_edge(LEFT))
 
     self.wait()
+
+# class Squircle(VMobject):
+#   def __init__(self, **kargs):
+#     super().__init__(**kargs)
+#     self.add(Square())
+#     self.add(Circle())
+
+# class Test(Scene):
+#   def construct(self):
+#     s = Squircle()
+#     self.add(s)
+#     s[0].shift(LEFT)
+#     print(len(s))
+
+
 

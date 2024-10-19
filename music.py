@@ -44,35 +44,24 @@ class NoteData:
     
 # endregion
 
-class NoteHead(VMobject):
-  def __init__(self, size, open=False, **kwargs):
-    super().__init__(**kwargs)
-
-    
-
-class NoteStem(VMobject):
-  def __init__(self, size, head, **kwargs):
-    super().__init__(**kwargs)
-
-    self.become(Line([0, 0, 0], [0, size*3, 0], stroke_width=STEM))
-    self.align_to(head, DR).shift(UP*(2/3)*size)
-
 class Note(VMobject):
   def __init__(self, size, openHead=False, stem=True, **kwargs):
     super().__init__(**kwargs)
 
-    # note head
-    noteHead = Ellipse(1.618, 1, color=WHITE).set_opacity(1)
+    self.head = Ellipse(1.618, 1, color=WHITE).set_opacity(1)
 
     if openHead:
       headInner = Ellipse(1.618, 0.618, color=WHITE, stroke_width=1)
       headInner.set_opacity(1).set_fill(BLACK)
-      noteHead.add(headInner)
+      self.head.add(headInner)
 
-    noteHead.rotate(22 * DEGREES).scale_to_fit_height(size).center()
+    self.head.rotate(21 * DEGREES).scale_to_fit_height(size)
 
-    self.add(noteHead)
-    if stem: self.add(NoteStem(size, noteHead))
+    self.add(self.head)
+    if stem: 
+      self.stem = Line([0, 0, 0], [0, size*3, 0], stroke_width=STEM)
+      self.stem.align_to(self, DR).shift(UP*(2/3)*size)
+      self.add(self.stem)
 
 class QuarterNote(VMobject):
   def __init__(self, size=1, **kwargs):
@@ -95,66 +84,67 @@ class NoteTypes:
   QUARTER = NoteData(1, QuarterNote)
 
 class Measure(VMobject):
-  def __init__(self, notes=[], time_signature=[4,4], width=False, **kwargs):
+  def __init__(self, notes=[], signature=[4,4], width=False, **kwargs):
     super().__init__(**kwargs)
-    self.add(makeMeasure(notes, time_signature, width))
 
-def makeMeasure(notes=[], time_signature=[4,4], width=False):
-  # note lines
-  if not width:
-    width = max(time_signature[0], 2)
+    # note lines
+    if not width:
+      width = max(signature[0], 2)
 
-  nLines = VGroup(
-    *[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
-  ).arrange(DOWN)
+    self.noteLines = VGroup(
+      *[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
+    ).arrange(DOWN)
 
-  nLineSpacing = nLines[0].get_start()[1] - nLines[1].get_start()[1]
+    nLineSpacing = self.noteLines[0].get_start()[1] - self.noteLines[1].get_start()[1]
 
-  # bar lines
-  barLines = VGroup(*[
-    Line(nLines[0].get_start(), nLines[4].get_start(), stroke_width=THIN), 
-    Line(nLines[0].get_end(), nLines[4].get_end(), stroke_width=THIN).shift(LEFT*0.125), 
-    Line(nLines[0].get_end(), nLines[4].get_end(), stroke_width=THICK)
-  ])
+    # bar lines
+    self.barLines = VGroup(*[
+      Line(self.noteLines[0].get_start(), self.noteLines[4].get_start(), stroke_width=THIN), 
+      Line(self.noteLines[0].get_end(), self.noteLines[4].get_end(), stroke_width=THIN).shift(LEFT*0.125), 
+      Line(self.noteLines[0].get_end(), self.noteLines[4].get_end(), stroke_width=THICK)
+    ])
 
-  # time signature
-  signature = VGroup(
-    *[MathTex(time_signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
-  )
-  signature[1].align_to(nLines[-1].get_start(), DL)
-  signature[0].next_to(signature[1], UP, buff=0).align_to(signature)
+    # time signature
+    self.signature = VGroup(
+      *[MathTex(signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
+    )
+    self.signature[1].align_to(self.noteLines[-1].get_start(), DL)
+    self.signature[0].next_to(self.signature[1], UP, buff=0).align_to(self.signature)
 
-  # notes
-  xLeft = signature[0].get_edge_center(RIGHT)[0]
-  xRight = barLines[1].get_edge_center(LEFT)[0]
-  noteRegionWidth = xRight - xLeft
-  x0 = signature[0].get_corner(UR)[0]
+    # notes
+    xLeft = self.signature[0].get_edge_center(RIGHT)[0]
+    xRight = self.barLines[1].get_edge_center(LEFT)[0]
+    noteRegionWidth = xRight - xLeft
+    x0 = self.signature[0].get_corner(UR)[0]
 
-  noteMobjs = []
+    noteMobjs = []
 
-  if len(notes):
-    duration = 0
-    beatFactor = time_signature[1]/4
-    measureLength = time_signature[0]/beatFactor
-    k = 0 # offset, used for spacing notes correctly
+    if len(notes):
+      duration = 0
+      beatFactor = signature[1]/4
+      measureLength = signature[0]/beatFactor
+      k = 0 # offset, used for spacing notes correctly
 
-    for i, note in enumerate(notes):
-      if note.duration == measureLength:
-        x = x0 + noteRegionWidth/2
-      else:
-        x = x0 + (i+k+1)*noteRegionWidth/(width+1)
-      
-      noteMobj = note.vMobj(nLineSpacing)
-      duration += note.duration * beatFactor
+      for i, note in enumerate(notes):
+        if note.duration == measureLength:
+          x = x0 + noteRegionWidth/2
+        else:
+          x = x0 + (i+k+1)*noteRegionWidth/(width+1)
         
-      if duration > time_signature[0]: 
-        raise(TooManyBeats(duration, time_signature[0]))
-        
-      noteMobjs += noteMobj.move_to([x, 0, 0]).align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)
+        noteMobj = note.vMobj(nLineSpacing)
+        duration += note.duration * beatFactor
+          
+        if duration > signature[0]: 
+          raise(TooManyBeats(duration, signature[0]))
+          
+        noteMobjs += noteMobj.move_to([x, 0, 0]).align_to(self.noteLines[2], DOWN).shift(DOWN*nLineSpacing/2)
 
-    if duration < time_signature[0]:
-      raise(NotEnoughBeats(duration, time_signature[0]))
-    
-    return VGroup(nLines, barLines, signature, VGroup(*noteMobjs)).center()
+      if duration < signature[0]:
+        raise(NotEnoughBeats(duration, signature[0]))
       
-  return VGroup(nLines, barLines, signature).center()
+      self.staff = VGroup(self.noteLines, self.barLines, self.signature)
+      self.notes = VGroup(*noteMobjs)
+      self.add(self.staff, self.notes)
+    else:
+      self.staff = VGroup(self.noteLines, self.barLines, self.signature)
+      self.add(self.staff)
