@@ -1,5 +1,6 @@
 from manim import *
-from music import Measure, NoteTypes as NT
+from music import *
+from music import NoteTypes as NT
 import itertools
 
 def chooseKFromArray(k, array):
@@ -51,3 +52,4 @@ class Music(Scene):
       self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
 
     self.wait()
+

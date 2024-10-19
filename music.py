@@ -48,16 +48,7 @@ class NoteHead(VMobject):
   def __init__(self, size, open=False, **kwargs):
     super().__init__(**kwargs)
 
-    if open:
-      headOuter = Ellipse(1.618, 1, color=WHITE).set_opacity(1)
-      headInner = Ellipse(1.618, 0.618, color=WHITE, stroke_width=1)
-      headInner.set_opacity(1).set_fill(BLACK)
-
-      self.add(headOuter, headInner)
-    else:
-      self.add(Ellipse(1.618, 1, color=WHITE).set_opacity(1))
-
-    self.rotate(22 * DEGREES).scale_to_fit_height(size).center()
+    
 
 class NoteStem(VMobject):
   def __init__(self, size, head, **kwargs):
@@ -70,22 +61,31 @@ class Note(VMobject):
   def __init__(self, size, openHead=False, stem=True, **kwargs):
     super().__init__(**kwargs)
 
-    self.become(NoteHead(size, openHead))
-    if stem:
-      self.add(NoteStem(size, self))
+    # note head
+    noteHead = Ellipse(1.618, 1, color=WHITE).set_opacity(1)
+
+    if openHead:
+      headInner = Ellipse(1.618, 0.618, color=WHITE, stroke_width=1)
+      headInner.set_opacity(1).set_fill(BLACK)
+      noteHead.add(headInner)
+
+    noteHead.rotate(22 * DEGREES).scale_to_fit_height(size).center()
+
+    self.add(noteHead)
+    if stem: self.add(NoteStem(size, noteHead))
 
 class QuarterNote(VMobject):
-  def __init__(self, size, **kwargs):
+  def __init__(self, size=1, **kwargs):
     super().__init__(**kwargs)
     self.become(Note(size))
 
 class HalfNote(VMobject):
-  def __init__(self, size, **kwargs):
+  def __init__(self, size=1, **kwargs):
     super().__init__(**kwargs)
     self.become(Note(size, openHead=True))
 
 class WholeNote(VMobject):
-  def __init__(self, size, **kwargs):
+  def __init__(self, size=1, **kwargs):
     super().__init__(**kwargs)
     self.become(Note(size, openHead=True, stem=False))
 
@@ -93,9 +93,6 @@ class NoteTypes:
   WHOLE = NoteData(4, WholeNote)
   HALF = NoteData(2, HalfNote)
   QUARTER = NoteData(1, QuarterNote)
-  # WHOLE = 4
-  # HALF = 2
-  # QUARTER = 1
 
 class Measure(VMobject):
   def __init__(self, notes=[], time_signature=[4,4], width=False, **kwargs):
