@@ -45,30 +45,23 @@ class NoteData:
 # endregion
 
 class NoteHead(VMobject):
-  def __init__(self, size, openHead=False, **kwargs):
+  def __init__(self, size, open=False, color=WHITE, **kwargs):
     super().__init__(**kwargs)
-    self.add(Ellipse(1.618, 1, color=WHITE).set_opacity(1))
-    self.openHead = openHead
+    head = Ellipse(1.618, 1, color=color).set_opacity(1)
+    self.open = open
 
-    if openHead:
-      headInner = Ellipse(1.618, 0.618, color=WHITE, stroke_width=1)
-      headInner.set_opacity(1).set_fill(BLACK)
-      self.add(headInner)
-
+    if open:
+      hole = Ellipse(1.618, 0.618, color=color).set_opacity(1)
+      head = Cutout(head, hole, color=color, fill_opacity=1)
+      
+    self.become(head)
     self.rotate(21 * DEGREES).scale_to_fit_height(size)
-
-  def my_set_color(self, color: ParsableManimColor, family: bool = True):
-    if self.openHead:
-      self[0].set_color(PINK, family)
-    else:
-      super().set_color(PINK, family)
-    return self
     
   def set_color(self, color: ParsableManimColor, family: bool = True):
     if self.openHead:
-      self[0].set_color(PINK, family)
+      self[0].set_color(color, family)
     else:
-      super().set_color(PINK, family)
+      super().set_color(color, family)
     return self
 
 class NoteStem(VMobject):
@@ -78,30 +71,31 @@ class NoteStem(VMobject):
     self.become(Line([0, 0, 0], [0, size*3, 0], stroke_width=STEM))
 
 class Note(VMobject):
-  def __init__(self, size, openHead=False, stem=True, **kwargs):
+  def __init__(self, size, openHead=False, stem=True, color=WHITE, **kwargs):
     super().__init__(**kwargs)
 
-    self.head = NoteHead(size, openHead)
+    self.head = NoteHead(size, openHead, color=color)
     self.add(self.head)
 
     if stem:
       self.stem = NoteStem(size).align_to(self.head, DR).shift(UP*(2/3)*size)
       self.add(self.stem)
 
-class QuarterNote(VMobject):
-  def __init__(self, size=1, **kwargs):
-    super().__init__(**kwargs)
-    self.become(Note(size))
+  def set_color(self, color: ParsableManimColor, family: bool = True):
+    self.head.set_color(color, family)
+    self.stem.set_color(color, family)
 
-class HalfNote(VMobject):
-  def __init__(self, size=1, **kwargs):
-    super().__init__(**kwargs)
-    self.become(Note(size, openHead=True))
+class QuarterNote(Note):
+  def __init__(self, size=1, color=WHITE, **kwargs):
+    super().__init__(size, color=color, **kwargs)
 
-class WholeNote(VMobject):
-  def __init__(self, size=1, **kwargs):
-    super().__init__(**kwargs)
-    self.become(Note(size, openHead=True, stem=False))
+class HalfNote(Note):
+  def __init__(self, size=1, color=WHITE, **kwargs):
+    super().__init__(size, openHead=True, color=color, **kwargs)
+
+class WholeNote(Note):
+  def __init__(self, size=1, color=WHITE, **kwargs):
+    super().__init__(size, openHead=True, stem=False, color=color, **kwargs)
 
 class NoteTypes:
   WHOLE = NoteData(4, WholeNote)
