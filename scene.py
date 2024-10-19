@@ -65,19 +65,4 @@ class Music(Scene):
     self.play(measureGroups[-1].animate.next_to(measureGroups[-2], DOWN).to_edge(LEFT))
 
     self.wait()
-
-# class Squircle(VMobject):
-#   def __init__(self, **kargs):
-#     super().__init__(**kargs)
-#     self.add(Square())
-#     self.add(Circle())
-
-# class Test(Scene):
-#   def construct(self):
-#     s = Squircle()
-#     self.add(s)
-#     s[0].shift(LEFT)
-#     print(len(s))
-
-
-
+    

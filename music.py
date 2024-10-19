@@ -111,6 +111,9 @@ class Measure(VMobject):
     self.signature[1].align_to(self.noteLines[-1].get_start(), DL)
     self.signature[0].next_to(self.signature[1], UP, buff=0).align_to(self.signature)
 
+    self.staff = VGroup(self.noteLines, self.barLines, self.signature)
+    self.add(self.staff)
+
     # notes
     xLeft = self.signature[0].get_edge_center(RIGHT)[0]
     xRight = self.barLines[1].get_edge_center(LEFT)[0]
@@ -130,6 +133,9 @@ class Measure(VMobject):
           x = x0 + noteRegionWidth/2
         else:
           x = x0 + (i+k+1)*noteRegionWidth/(width+1)
+
+        if note.duration == NoteTypes.HALF.duration:
+          k += 1
         
         noteMobj = note.vMobj(nLineSpacing)
         duration += note.duration * beatFactor
@@ -142,9 +148,5 @@ class Measure(VMobject):
       if duration < signature[0]:
         raise(NotEnoughBeats(duration, signature[0]))
       
-      self.staff = VGroup(self.noteLines, self.barLines, self.signature)
       self.notes = VGroup(*noteMobjs)
       self.add(self.staff, self.notes)
-    else:
-      self.staff = VGroup(self.noteLines, self.barLines, self.signature)
-      self.add(self.staff)
