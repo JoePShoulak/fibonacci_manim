@@ -1,5 +1,5 @@
 from manim import *
-from music import *
+from music import Measure, NoteTypes as NT
 import itertools
 
 def chooseKFromArray(k, array):
@@ -13,7 +13,7 @@ def chooseKFromArray(k, array):
 
 def fibonacciNotes(signature):
   noteOptions = []
-  noteList = [0, Note.QUARTER, Note.HALF]
+  noteList = [0, NT.QUARTER, NT.HALF]
 
   for noteOption in chooseKFromArray(signature[0], noteList):
     if not sum(noteOption) == signature[0] * 4/signature[1]:
@@ -30,8 +30,8 @@ class Music(Scene):
   def construct(self):
     measureGroups = []
 
-    mes = makeMeasure([], [0, 4])
-    num = Tex(1).next_to(mes, DOWN).add_updater(lambda n: n.scale_to_fit_height(0.5))
+    mes = Measure([], [0, 4])
+    num = Tex(1).next_to(mes, DOWN) # .add_updater(lambda n: n.scale_to_fit_height(0.5))
     measureGroups += [VGroup(mes, num).center().to_edge(UP)]
 
     self.play(Write(measureGroups[-1][0]), reverse=True)
@@ -40,7 +40,7 @@ class Music(Scene):
 
     for i in range(1,5):
       signature = [i, 4]
-      mes = VGroup(*[makeMeasure(m, signature) for m in fibonacciNotes(signature)])
+      mes = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
       mes.arrange(LEFT).center()
       num = Tex(str(len(mes))).next_to(mes, DOWN)
       measureGroups += [VGroup(mes, num).center().to_edge(UP)]
