@@ -57,10 +57,15 @@ def makeQuarterNote(size): return makeNote(size)
 def makeHalfNote(size): return makeNote(size, openHead=True)
 def makeWholeNote(size): return makeNote(size, openHead=True, stem=False)
 
+class Measure(Mobject):
+  def __init__(self, notes=[], time_signature=[4,4], width=False, **kwargs):
+    super.construct(**kwargs)
+    self.add(makeMeasure(notes, time_signature, width))
+
 def makeMeasure(notes=[], time_signature=[4,4], width=False):
   # note lines
   if not width:
-    width = 1 + max(time_signature[0], 1)
+    width = max(time_signature[0], 2)
 
   nLines = VGroup(
     *[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
@@ -79,8 +84,8 @@ def makeMeasure(notes=[], time_signature=[4,4], width=False):
   signature = VGroup(
     *[MathTex(time_signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
   )
-  signature[0].align_to(nLines[0].get_start(), UL)
   signature[1].align_to(nLines[-1].get_start(), DL)
+  signature[0].next_to(signature[1], UP, buff=0).align_to(signature)
 
   # notes
   xLeft = signature[0].get_edge_center(RIGHT)[0]
@@ -106,7 +111,7 @@ def makeMeasure(notes=[], time_signature=[4,4], width=False):
       
       match note:
         case Note.QUARTER:
-          noteMobj = makeQuarterNote(nLineSpacing).move_to([x, 0, 0])
+          noteMobj = makeQuarterNote(nLineSpacing)
           if beatFactor == 2: k += 1
         case Note.HALF:
           noteMobj = makeHalfNote(nLineSpacing).move_to([x, 0, 0])
@@ -121,11 +126,11 @@ def makeMeasure(notes=[], time_signature=[4,4], width=False):
       if duration > time_signature[0]: 
         raise(TooManyBeats(duration, time_signature[0]))
         
-      noteMobjs += noteMobj.align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)    
+      noteMobjs += noteMobj.move_to([x, 0, 0]).align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)
 
     if duration < time_signature[0]:
       raise(NotEnoughBeats(duration, time_signature[0]))
     
-    noteMobjs = VGroup(*noteMobj)
+    return VGroup(nLines, barLines, signature, VGroup(*noteMobjs)).center()
       
-  return VGroup(nLines, barLines, signature, noteMobjs).center()
+  return VGroup(nLines, barLines, signature).center()

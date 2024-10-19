@@ -28,11 +28,28 @@ def fibonacciNotes(signature):
 
 class Music(Scene):
   def construct(self):
-    self.add(makeMeasure([Note.QUARTER], [1, 4]))
+    measureGroups = []
 
-    # signature = [4, 4]
-    # measures = VGroup(*[makeMeasure(m, signature) for m in fibonacciNotes(signature)])
-    # measures.arrange(UP).center().scale(0.8)
-    # self.add(measures)
+    mes = makeMeasure([], [0, 4])
+    num = Tex(1).next_to(mes, DOWN).add_updater(lambda n: n.scale_to_fit_height(0.5))
+    measureGroups += [VGroup(mes, num).center().to_edge(UP)]
+
+    self.play(Write(measureGroups[-1][0]), reverse=True)
+    self.play(Write(measureGroups[-1][1]))
+    self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).to_corner(UL).shift(DOWN))
+
+    for i in range(1,5):
+      signature = [i, 4]
+      mes = VGroup(*[makeMeasure(m, signature) for m in fibonacciNotes(signature)])
+      mes.arrange(LEFT).center()
+      num = Tex(str(len(mes))).next_to(mes, DOWN)
+      measureGroups += [VGroup(mes, num).center().to_edge(UP)]
+      if i == 4: mes.scale(0.5).next_to(num, UP)
+
+      self.play(Write(measureGroups[-1][0]), reverse=True)
+      self.play(Write(measureGroups[-1][1]))
+      self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
+
+    self.wait()
 
 
