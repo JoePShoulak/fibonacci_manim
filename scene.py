@@ -24,35 +24,53 @@ def fibonacciNotes(signature):
   reducedNoteOptions = []
   [reducedNoteOptions.append(x) for x in noteOptions if x not in reducedNoteOptions]
 
-  return reducedNoteOptions
+  return reversed(reducedNoteOptions)
 
 class Music(Scene):
   def construct(self):
-    measureGroups = []
+    allMeasureGroups = []
 
     for i in range(5):
       signature = [i, 4]
 
-      measures = VGroup(
-        *[Measure(m, signature) for m in fibonacciNotes(signature)]
-      ).arrange(LEFT)
-      if i == 4: measures.scale(0.6)
-      measures.center().to_edge(UP)
-      measureGroups += [measures]
+      measures = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
+      measures.arrange(RIGHT).scale(0.6 if i == 4 else 1).center().to_edge(UP)
+      self.play(Write(measures), reverse=True)
 
-      self.play(Write(measureGroups[-1]), reverse=True)
+      anim = measures.animate.scale(1 if i == 4 else 0.6)
 
-      anim = measureGroups[-1].animate
-
-      if i == 0:
-        anim.scale(0.6).to_corner(UL).shift(DOWN*2)
-      elif i == 4:
-        anim.next_to(measureGroups[-2], DOWN).to_edge(LEFT)
+      if allMeasureGroups:
+        anim.next_to(allMeasureGroups[-1], DOWN).to_edge(LEFT)
       else:
-        anim.scale(0.6).next_to(measureGroups[-2], DOWN).to_edge(LEFT)
+        anim.to_corner(UL).shift(DOWN*2)
 
       self.play(anim.shift(RIGHT * 0.25))
-      self.play(Write(MathTex(len(measures)).next_to(measures[-1].noteLines[2], LEFT)))
+      measureCount = MathTex(len(measures)).next_to(measures[0].noteLines[2], LEFT)
+      self.play(Write(measureCount))
+
+      allMeasureGroups += [measures]
 
     self.wait()
     
+    for i in range(3):
+      aMeasures = allMeasureGroups[i]
+      aAnim = [measure.notes.animate.set_color(YELLOW_D) for measure in aMeasures]
+      self.play(*aAnim)
+
+      bMeasures = allMeasureGroups[i+1]
+      bAnim = [measure.notes.animate.set_color(RED) for measure in bMeasures]
+      self.play(*bAnim)
+
+      cAnim = []
+      cMeasures = allMeasureGroups[i+2]
+      for cMeasure in cMeasures[:len(bMeasures)]:
+        cAnim += [cMeasure.notes[:-2].animate.set_color(RED)]
+        cAnim += [cMeasure.notes[-2:].animate.set_color(ORANGE)]
+      for cMeasure in cMeasures[len(bMeasures):]:
+        cAnim += [cMeasure.notes[:-2].animate.set_color(YELLOW)]
+        cAnim += [cMeasure.notes[-2:].animate.set_color(ORANGE)]
+      self.play(*cAnim)
+      self.wait()
+
+      self.play([measure.animate.set_color(WHITE) for measure in [*aMeasures, *bMeasures, *cMeasures]])
+      self.wait()

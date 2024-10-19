@@ -57,11 +57,11 @@ class Note(VMobject):
 
     self.head.rotate(21 * DEGREES).scale_to_fit_height(size)
 
-    self.add(self.head)
+    self.become(self.head)
     if stem: 
       self.stem = Line([0, 0, 0], [0, size*3, 0], stroke_width=STEM)
       self.stem.align_to(self, DR).shift(UP*(2/3)*size)
-      self.add(self.stem)
+      self.become(VGroup(self.head, self.stem))
 
 class QuarterNote(VMobject):
   def __init__(self, size=1, **kwargs):
@@ -121,6 +121,7 @@ class Measure(VMobject):
     x0 = self.signature[0].get_corner(UR)[0]
 
     noteMobjs = []
+    self.notes = VMobject()
 
     if len(notes):
       duration = 0
