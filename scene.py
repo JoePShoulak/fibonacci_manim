@@ -28,13 +28,11 @@ def fibonacciNotes(signature):
 
 class Music(Scene):
   def construct(self):
-    self.add(makeMeasure([], [0, 4]))
+    self.add(makeMeasure([Note.QUARTER], [1, 4]))
 
     # signature = [4, 4]
     # measures = VGroup(*[makeMeasure(m, signature) for m in fibonacciNotes(signature)])
     # measures.arrange(UP).center().scale(0.8)
     # self.add(measures)
-
-    self.wait()
 
 

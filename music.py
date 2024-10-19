@@ -61,23 +61,24 @@ def makeMeasure(notes=[], time_signature=[4,4], width=False):
   # note lines
   if not width:
     width = 1 + max(time_signature[0], 1)
-    
-  nLines = [Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
 
-  for i in range(1, len(nLines)):
-      nLines[i].next_to(nLines[i-1], DOWN)
+  nLines = VGroup(
+    *[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
+  ).arrange(DOWN)
 
   nLineSpacing = nLines[0].get_start()[1] - nLines[1].get_start()[1]
 
   # bar lines
-  barLines = [
+  barLines = VGroup(*[
     Line(nLines[0].get_start(), nLines[4].get_start(), stroke_width=THIN), 
     Line(nLines[0].get_end(), nLines[4].get_end(), stroke_width=THIN).shift(LEFT*0.125), 
     Line(nLines[0].get_end(), nLines[4].get_end(), stroke_width=THICK)
-  ]
+  ])
 
   # time signature
-  signature = [MathTex(time_signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
+  signature = VGroup(
+    *[MathTex(time_signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
+  )
   signature[0].align_to(nLines[0].get_start(), UL)
   signature[1].align_to(nLines[-1].get_start(), DL)
 
@@ -124,5 +125,7 @@ def makeMeasure(notes=[], time_signature=[4,4], width=False):
 
     if duration < time_signature[0]:
       raise(NotEnoughBeats(duration, time_signature[0]))
+    
+    noteMobjs = VGroup(*noteMobj)
       
-  return VGroup(*nLines, *barLines, *signature, *noteMobjs).center()
+  return VGroup(nLines, barLines, signature, noteMobjs).center()
