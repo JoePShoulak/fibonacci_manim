@@ -35,7 +35,7 @@ class Music(Scene):
 
       measures = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
       measures.arrange(RIGHT).scale(0.6 if i == 4 else 1).center().to_edge(UP)
-      self.play(Write(measures), reverse=True)
+      self.play(Write(measures))
 
       anim = measures.animate.scale(1 if i == 4 else 0.6)
 
@@ -64,13 +64,45 @@ class Music(Scene):
       cAnim = []
       cMeasures = allMeasureGroups[i+2]
       for cMeasure in cMeasures[:len(bMeasures)]:
-        cAnim += [cMeasure.notes[:-2].animate.set_color(RED)]
-        cAnim += [cMeasure.notes[-2:].animate.set_color(ORANGE)]
+        cAnim += [cMeasure.notes[:-2][::2].animate.set_color(RED)]
+        cAnim += [cMeasure.notes[-2:][::2].animate.set_color(ORANGE)]
       for cMeasure in cMeasures[len(bMeasures):]:
-        cAnim += [cMeasure.notes[:-2].animate.set_color(YELLOW)]
-        cAnim += [cMeasure.notes[-2:].animate.set_color(ORANGE)]
+        cAnim += [cMeasure.notes[:-2][::2].animate.set_color(YELLOW)]
+        cAnim += [cMeasure.notes[-2:][::2].animate.set_color(ORANGE)]
       self.play(*cAnim)
       self.wait()
 
       self.play([measure.animate.set_color(WHITE) for measure in [*aMeasures, *bMeasures, *cMeasures]])
       self.wait()
+
+from manim import *
+from music import QuarterNote, HalfNote, NoteHead
+
+def colorNoteAnim(note, color): # FIXME: This should be a class function somehow
+  anim = []
+  if len(note[0]) == 1:
+    anim += [note[0].animate.set_color(color)]
+  else:
+    anim += [note[0][0].animate.set_color(color)]
+  anim += [note[1].animate.set_color(color)]
+
+  return AnimationGroup(*anim)
+
+class Test(Scene):
+  def construct(self):
+    nHOpen = NoteHead(1, openHead=True)
+    nHClosed = NoteHead(1).next_to(nHOpen, DOWN)
+
+    self.play(Write(nHOpen), Write(nHClosed))
+
+    self.play(nHClosed.animate.my_set_color(PINK), nHOpen.animate.my_set_color(PINK))
+
+    self.play(FadeOut(nHClosed, nHOpen))
+
+    noteOpen = HalfNote(1)
+    self.play(Write(noteOpen))
+
+    noteOpen.head.my_set_color(PINK)
+
+    self.wait()
+
