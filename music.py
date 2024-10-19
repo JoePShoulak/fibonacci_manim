@@ -57,9 +57,11 @@ def makeQuarterNote(size): return makeNote(size)
 def makeHalfNote(size): return makeNote(size, openHead=True)
 def makeWholeNote(size): return makeNote(size, openHead=True, stem=False)
 
-def makeMeasure(notes, width=-1, time_signature=[4,4]):
+def makeMeasure(notes=[], time_signature=[4,4], width=False):
   # note lines
-  if width == -1: width = time_signature[0]
+  if not width:
+    width = 1 + max(time_signature[0], 1)
+    
   nLines = [Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
 
   for i in range(1, len(nLines)):
@@ -86,33 +88,41 @@ def makeMeasure(notes, width=-1, time_signature=[4,4]):
   x0 = signature[0].get_corner(UR)[0]
 
   noteMobjs = []
-  duration = 0
-  beatFactor = time_signature[1]/4
-  k = 0 # offset, used for spacing notes correctly
 
-  for i, note in enumerate(notes):
-    noteMobj = Mobject()
-    x = x0 + (i+k+1)*noteRegionWidth/(width+1)
-    
-    match note:
-      case Note.QUARTER:
-        noteMobj = makeQuarterNote(nLineSpacing).move_to([x, 0, 0])
-      case Note.HALF:
-        noteMobj = makeHalfNote(nLineSpacing).move_to([x, 0, 0])
-        k += 1 # don't put another note right next to it
-      case Note.WHOLE:
-        noteMobj = makeWholeNote(nLineSpacing).move_to([x0 + noteRegionWidth/2, 0, 0])
-      case _:
-        raise(InvalidNote)
-    
-    duration += note * beatFactor
-      
-    if duration > time_signature[0]: 
-      raise(TooManyBeats(duration, time_signature[0]))
-      
-    noteMobjs += noteMobj.align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)    
+  if len(notes):
+    duration = 0
+    beatFactor = time_signature[1]/4
+    measureLength = time_signature[0]/beatFactor
+    k = 0 # offset, used for spacing notes correctly
 
-  if duration < time_signature[0]:
-    raise(NotEnoughBeats(duration, time_signature[0]))
+    for i, note in enumerate(notes):
+      noteMobj = Mobject()
+
+      if note == measureLength:
+        x = x0 + noteRegionWidth/2
+      else:
+        x = x0 + (i+k+1)*noteRegionWidth/(width+1)
+      
+      match note:
+        case Note.QUARTER:
+          noteMobj = makeQuarterNote(nLineSpacing).move_to([x, 0, 0])
+          if beatFactor == 2: k += 1
+        case Note.HALF:
+          noteMobj = makeHalfNote(nLineSpacing).move_to([x, 0, 0])
+          k += 1 # don't put another note right next to it
+        case Note.WHOLE:
+          noteMobj = makeWholeNote(nLineSpacing).move_to([x, 0, 0])
+        case _:
+          raise(InvalidNote)
+      
+      duration += note * beatFactor
+        
+      if duration > time_signature[0]: 
+        raise(TooManyBeats(duration, time_signature[0]))
+        
+      noteMobjs += noteMobj.align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)    
+
+    if duration < time_signature[0]:
+      raise(NotEnoughBeats(duration, time_signature[0]))
       
   return VGroup(*nLines, *barLines, *signature, *noteMobjs).center()
