@@ -51,5 +51,3 @@ class Music(Scene):
       self.play(measureGroups[-1].animate.scale_to_fit_height(0.8).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
 
     self.wait()
-
-
