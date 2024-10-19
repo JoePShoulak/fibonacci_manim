@@ -30,39 +30,29 @@ class Music(Scene):
   def construct(self):
     measureGroups = []
 
-    def mesNumUpdater(mesNum):
-      mesNum[1].next_to(mesNum[0][-1].noteLines[2], LEFT).scale_to_fit_height(max(mesNum[1].height, 0.4))
-
-    mes = VGroup(Measure([], [0, 4]))
-    num = Tex(1).scale(2).next_to(mes, LEFT).next_to(mes[-1].noteLines[2], LEFT)
-    mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
-    measureGroups += [mesNum]
-
-    self.play(Write(measureGroups[-1][0]), reverse=True)
-    self.play(Write(measureGroups[-1][1]))
-    self.play(measureGroups[-1].animate.scale(0.6).to_corner(UL).shift(DOWN*2))
-
-    for i in range(1,4):
+    for i in range(5):
       signature = [i, 4]
-      mes = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
-      mes.arrange(LEFT).center()
-      num = Tex(str(len(mes))).scale(2).next_to(mes[-1].noteLines[2], LEFT)
-      mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
-      measureGroups += [mesNum]
 
-      self.play(Write(measureGroups[-1][0]), reverse=True)
-      self.play(Write(measureGroups[-1][1]))
-      self.play(measureGroups[-1].animate.scale(0.6).next_to(measureGroups[-2], DOWN).to_edge(LEFT))
+      measures = VGroup(
+        *[Measure(m, signature) for m in fibonacciNotes(signature)]
+      ).arrange(LEFT)
+      if i == 4: measures.scale(0.6)
+      measures.center().to_edge(UP)
+      measureGroups += [measures]
 
-    mes = VGroup(*[Measure(m, [4, 4]) for m in fibonacciNotes([4, 4])])
-    mes.arrange(LEFT).center().scale(0.6)
-    num = Tex(str(len(mes))).scale(1.2).next_to(mes[-1].noteLines[2], LEFT)
-    mesNum = VGroup(mes, num).center().to_edge(UP).add_updater(mesNumUpdater)
-    measureGroups += [mesNum]
+      self.play(Write(measureGroups[-1]), reverse=True)
 
-    self.play(Write(measureGroups[-1][0]), reverse=True)
-    self.play(Write(measureGroups[-1][1]))
-    self.play(measureGroups[-1].animate.next_to(measureGroups[-2], DOWN).to_edge(LEFT))
+      anim = measureGroups[-1].animate
+
+      if i == 0:
+        anim.scale(0.6).to_corner(UL).shift(DOWN*2)
+      elif i == 4:
+        anim.next_to(measureGroups[-2], DOWN).to_edge(LEFT)
+      else:
+        anim.scale(0.6).next_to(measureGroups[-2], DOWN).to_edge(LEFT)
+
+      self.play(anim.shift(RIGHT * 0.25))
+      self.play(Write(MathTex(len(measures)).next_to(measures[-1].noteLines[2], LEFT)))
 
     self.wait()
     
