@@ -5,12 +5,27 @@ THIN = 1.25
 THICK = 3
 STEM = 4
 
-class Note:
-  WHOLE = 0
-  HALF = 1
-  QUARTER = 2
+# TODO: consider adding more verbose output
+class NotEnoughNotes(Exception):
+  def __str__(self):
+    return f"Not enough notes were provided to fill the measure"
 
-def noteHead(size, open=False):
+# TODO: consider adding more verbose output
+class TooManyNotes(Exception):
+  def __str__(self):
+    return f"Too many notes were provided to fill the measure"
+  
+# TODO: consider adding more verbose output
+class InvalidNote(Exception):
+  def __str__(self):
+    return f"Invalid note provided"
+
+class Note:
+  WHOLE = 4
+  HALF = 2
+  QUARTER = 1
+
+def makeNoteHead(size, open=False):
   if open:
     headOuter = Ellipse(1.618, 1, color=WHITE).set_opacity(1)
     headInner = Ellipse(1.618, 0.618, color=WHITE).set_opacity(1).set_fill(BLACK)
@@ -21,22 +36,22 @@ def noteHead(size, open=False):
 
   return head.rotate(22 * DEGREES).scale_to_fit_height(size).center()
 
-def noteStem(size, head):
+def makeNoteStem(size, head):
   stem = Line([0, 0, 0], [0, size*3, 0], stroke_width=STEM)
   return stem.align_to(head, DR).shift(UP*(2/3)*size)
 
-def note(size, openHead=False, stem=True):
-  head = noteHead(size, openHead)
-  return (VGroup(head, noteStem(size, head)) if stem else head).center()
+def makeNote(size, openHead=False, stem=True):
+  head = makeNoteHead(size, openHead)
+  return (VGroup(head, makeNoteStem(size, head)) if stem else head).center()
 
-def quarterNote(size):
-  return note(size)
+def makeQuarterNote(size):
+  return makeNote(size)
 
-def halfNote(size):
-  return note(size, openHead=False)
+def makeHalfNote(size):
+  return makeNote(size, openHead=True)
 
-def wholeNote(size):
-  return note(size, openHead=True, stem=False)
+def makeWholeNote(size):
+  return makeNote(size, openHead=True, stem=False)
 
 def musicStaff(notes, width=-1, time_signature=[4,4]):
   # note lines
@@ -70,24 +85,30 @@ def musicStaff(notes, width=-1, time_signature=[4,4]):
   noteMobjs = []
   duration = 0
   beatFactor = time_signature[1]/4
+  k = 0
   for i, note in enumerate(notes):
-    if duration >= time_signature[0]: break
-
-    if note == Note.QUARTER:
-      duration += 1 * beatFactor
-      x = x1 + (i+1)*noteRegionWidth/(width+1)
-      noteMobjs += Line([x, y1, 0], [x, y2, 0])
-    elif note == Note.HALF:
-      duration += 2 * beatFactor
-      x = x1 + (i+1)*noteRegionWidth/(width+1)
-      noteMobjs += Line([x, y1, 0], [x, y2, 0])
-    elif note == Note.WHOLE:
-      duration += 4 * beatFactor
-      x = x1 + noteRegionWidth/2
-      noteMobjs += wholeNote(nLineSpacing).move_to([x, 0, 0]).align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)
-    else:
-      x = x1 + (i+1)*noteRegionWidth/(width+1)
-      noteMobjs += Line([x, y1, 0], [x, y2, 0])
+    duration += note * beatFactor
       
+    if duration > time_signature[0]: 
+      raise(TooManyNotes)
+    
+    noteMobj = Mobject()
+    x = x1 + (i+k+1)*noteRegionWidth/(width+1)
+    
+    match note:
+      case Note.QUARTER:
+        noteMobj = makeQuarterNote(nLineSpacing).move_to([x, 0, 0])
+      case Note.HALF:
+        noteMobj = makeHalfNote(nLineSpacing).move_to([x, 0, 0])
+        k += 1 # don't put another note right next to it
+      case Note.WHOLE:
+        noteMobj = makeWholeNote(nLineSpacing).move_to([x1 + noteRegionWidth/2, 0, 0])
+      case _:
+        raise(InvalidNote)
+      
+    noteMobjs += noteMobj.align_to(nLines[2], DOWN).shift(DOWN*nLineSpacing/2)    
 
+  if duration < time_signature[0]:
+    raise(NotEnoughNotes)
+      
   return VGroup(*nLines, *barLines, *signature, *noteMobjs).center()
