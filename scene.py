@@ -1,24 +1,34 @@
 from manim import *
-from sheet_music import *
+from music import *
+import itertools
+
+def chooseKFromArray(k, array):
+  result = [*array]
+  result = [list(i) for i in list(itertools.product(array, result))]
+
+  for _ in range(k-2):
+    result = [[*i[:-1], *i[-1]] for i in list(itertools.product(array, result))]
+
+  return result
 
 class Music(Scene):
   def construct(self):
-    noteOptions = []
-    potentialNotes = [Note.HALF, Note.QUARTER, 0]
+    # self.add(makeMeasure([])) # too few error
+    # self.add(makeMeasure([Note.WHOLE, Note.WHOLE])) # too many error
+    # self.add(makeMeasure(["glorm"])) # invalid error
 
-    for n1 in potentialNotes:
-      for n2 in potentialNotes:
-        for n3 in potentialNotes:
-          for n4 in potentialNotes:
-            if not n1 + n2 + n3 + n4 == 4:
-              pass
-            else:
-              options = [n1, n2, n3, n4]
-              noteOptions += [list(filter(lambda n: n != 0, options))]
+    noteOptions = []
+    noteList = [Note.HALF, Note.QUARTER, 0]
+
+    for noteOption in chooseKFromArray(4, noteList):
+      if not sum(noteOption) == 4:
+        pass
+      else:
+        noteOptions += [list(filter(lambda n: n != 0, noteOption))]
 
     reducedNoteOptions = []
     [reducedNoteOptions.append(x) for x in noteOptions if x not in reducedNoteOptions]
 
-    staves = VGroup(*[musicStaff(notes) for notes in reducedNoteOptions])
-    staves.arrange(DOWN).center().scale(0.8)
+    staves = VGroup(*[makeMeasure(notes) for notes in reducedNoteOptions])
+    staves.arrange(UP).center().scale(0.8)
     self.add(staves)
