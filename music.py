@@ -67,7 +67,7 @@ class NoteHead(VMobject):
     self.rotate(21 * DEGREES).scale_to_fit_height(size)
     
   def set_color(self, color: ParsableManimColor, family: bool = True):
-    if self.openHead:
+    if self.open:
       self[0].set_color(color, family)
     else:
       super().set_color(color, family)
@@ -151,25 +151,29 @@ class Measure(VMobject):
       k = 0
       beatFactor = signature[1]/4
       measureLength = signature[0]/beatFactor
-      if notes[0].duration == measureLength:
+
+      if notes[0].duration == measureLength: # If our note takes up the entire measure...
         if len(notes) > 1: raise TooManyBeats
 
-        noteMobs += notes[0].vMobj(self.staff.noteSize)
+        noteMobs = [notes[0].vMobj(self.staff.noteSize)] # all our notes are just this one
       else:
         for i, note in enumerate(notes):
-          noteMob = note.vMobj(self.staff.noteSize)
+          noteMob = note.vMobj(self.staff.noteSize) # create our note
           if i == 0:
+            # if we're the first one, put it by the staff
             noteMob.next_to(self.staff.signature[0], RIGHT)
           else:
+            # put it next to the last one, considering an offset k set by larger notes
             buff = self.staff.noteBuff + (self.staff.noteBuff + noteMob.width)*k
             noteMob.next_to(noteMobs[-1], RIGHT, buff=buff)
-            
+
+          # Align it to the center line and do some cleanup
           noteMob.align_to(self.staff.noteLines[3], DOWN).shift(UP*self.staff.noteSize/2)
           noteMobs += [noteMob]
           k = note.duration - 1
           duration += note.duration
+          if duration > measureLength: raise TooManyBeats
 
-        if duration > measureLength: raise TooManyBeats
         if duration < measureLength: raise NotEnoughBeats
 
     self.notes = VGroup(*noteMobs)

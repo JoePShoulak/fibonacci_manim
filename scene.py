@@ -56,4 +56,33 @@ class Music(Scene):
     # HIGHLIGHT
     for i in range(3):
       aMeasures = allMeasureGroups[i]
-      
+      bMeasures = allMeasureGroups[i+1]
+      bInspiredMeasures = allMeasureGroups[i+2][:len(bMeasures)]
+      aInspiredMeasures = allMeasureGroups[i+2][len(bMeasures):]
+      cMeasures = [*aInspiredMeasures, *bInspiredMeasures]
+
+      # Show the notes from the previous measures in ours
+      self.play(
+        *[measure.notes.animate.set_color(ORANGE) for measure in bMeasures],
+        *[measure.notes[:-1].animate.set_color(ORANGE) for measure in bInspiredMeasures]
+      )
+      self.wait()
+
+      # Show the notes we add to complete them
+      self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in bInspiredMeasures])
+      self.wait(2)
+
+      # Show the notes from the twice-previous measures in ours
+      self.play(
+        *[measure.notes.animate.set_color(RED) for measure in aMeasures],
+        *[measure.notes[:-1].animate.set_color(RED) for measure in aInspiredMeasures]
+      )
+      self.wait()
+
+      # Show the notes we add to complete them
+      self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in aInspiredMeasures])
+      self.wait(2)
+
+      # Clear everything
+      self.play(*[measures.animate.set_color(WHITE) for measures in [*aMeasures, *bMeasures, *cMeasures]])
+      self.wait()
