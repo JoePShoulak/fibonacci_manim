@@ -8,6 +8,7 @@ from helper import *
 
 config.max_files_cached = -1
 
+# region MUSIC
 class Music(VoiceoverScene):
   def construct(self):
     self.set_speech_service(
@@ -233,9 +234,13 @@ class Music(VoiceoverScene):
       that the next term in the sequence should relate to the sum of the previous two"""
     ):
       self.play(Write(definition))
+      self.wait(2)
 
     self.play(
       FadeOut(definition),
       *[FadeOut(mob) for mob in [*allMeasureGroups, *counts]], lag_ratio=0.5
     )
     self.wait()
+
+# endregion
+
