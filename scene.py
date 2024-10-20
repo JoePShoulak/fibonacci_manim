@@ -1,74 +1,107 @@
 from manim import *
+from manim_voiceover import VoiceoverScene
+from manim_voiceover.services.azure import AzureService
+
 from music import Measure, QuarterNote, HalfNote, NoteTypes as NT
-import itertools
+from helper import *
 
 config.max_files_cached = -1
 
-def chooseKFromArray(k, array):
-  result = [*array]
-  result = [list(i) for i in list(itertools.product(array, result))]
-
-  for _ in range(k-2):
-    result = [[*i[:-1], *i[-1]] for i in list(itertools.product(array, result))]
-
-  return result
-
-def fibonacciNotes(signature):
-  noteOptions = []
-  noteList = [0, NT.QUARTER, NT.HALF]
-
-  for noteOption in chooseKFromArray(signature[0], noteList):
-    if not sum(noteOption) == signature[0] * 4/signature[1]:
-      pass
-    else:
-      noteOptions += [list(filter(lambda n: n != 0, noteOption))]
-
-  reducedNoteOptions = []
-  [reducedNoteOptions.append(x) for x in noteOptions if x not in reducedNoteOptions]
-
-  return reversed(reducedNoteOptions)
-
-class Music(Scene):
+class Music(VoiceoverScene):
   def construct(self):
+    self.set_speech_service(
+      AzureService(
+        voice="en-US-AriaNeural",
+        style="newscast-casual"
+      )
+    )
+            
     # QUESTION
-    title = Text("How Many Notes Can We Fit?", font_size=55).to_edge(UP)
-    self.play(Write(title))
-    self.wait()
+    with self.voiceover(
+      """Here's a fun question for you: how many ways can we fill up a measure of music?
+      ...if we keep it a little simple"""
+    ):
+      title = Text("How Many Notes Can We Fit?", font_size=55).to_edge(UP)
+      self.play(Write(title))
+      self.wait()
 
     measure = Measure(signature=[2, 4])
     notes = VGroup(
-      QuarterNote(measure.staff.noteSize),
-      HalfNote(measure.staff.noteSize)
+        QuarterNote(measure.staff.noteSize),
+        HalfNote(measure.staff.noteSize)
     ).arrange(RIGHT, buff=1)
+
     demo = VGroup(measure, notes).arrange(DOWN, buff=1).center()
 
-    self.play(Write(demo[0]))
-    self.wait()
+    with self.voiceover(
+      """First of all, we're only going to consider time signatures where the quarter note gets the beat.
+      I'm choosing that mainly because we're more familiar with it."""
+    ):
+      self.play(Write(demo[0]))
+      self.wait()
 
-    self.play(Write(demo[1]))
-    self.wait()
+    with self.voiceover(
+      """Our only real rule to the problem is we're only going to use two notes: a short and a long,
+      which in our case would be the quarter note and the half note. This works any time the 
+      short note is the one that gets the beat, and the long note is twice the length of the short note."""
+    ):
+      self.play(Write(demo[1]))
+      self.wait()
 
-    newMeasure = Measure(notes=[NT.QUARTER, NT.QUARTER], signature=[2, 4]).align_to(demo[0], DOWN)
-    noteCopy = VGroup(*[demo[1][0].copy() for _ in range(2)])
-    self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
-    self.wait()
+    with self.voiceover(
+      """So in this quick example, we can fit two quarter notes"""
+    ):
+      newMeasure = Measure(notes=[NT.QUARTER, NT.QUARTER], signature=[2, 4]).align_to(demo[0], DOWN)
+      noteCopy = VGroup(*[demo[1][0].copy() for _ in range(2)])
+      self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
+      self.wait()
 
-    self.play(FadeOut(newMeasure.notes))
-    self.wait()
+      self.play(FadeOut(newMeasure.notes))
+      self.wait()
 
-    newMeasure = Measure(notes=[NT.HALF], signature=[2, 4]).align_to(demo[0], DOWN)
-    noteCopy = demo[1][1].copy()
-    self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
-    self.wait()
+    with self.voiceover(
+      """Or one half note"""
+    ):
+      newMeasure = Measure(notes=[NT.HALF], signature=[2, 4]).align_to(demo[0], DOWN)
+      noteCopy = demo[1][1].copy()
+      self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
+      self.wait()
 
-    self.play(FadeOut(newMeasure.notes))
-    self.wait()
+      self.play(FadeOut(newMeasure.notes))
+      self.wait()
 
-    self.play(FadeOut(title), FadeOut(demo))
-    self.wait()
+    with self.voiceover("Alright, let's go through them from the start"):
+      self.play(FadeOut(title), FadeOut(demo))
+      self.wait()
 
+    return
+  
     # LAYOUT
     allMeasureGroups = []
+    counts = []
+
+    vos = [
+      [
+        "So we'll start with time signature 0 4, which can't fit any notes",
+        "but there's exactly one way to do that, I suppose"
+      ],
+      [
+        "Then we'll move on to 1 4. We can only fill that with a quarter note",
+        "So that's 1 too"
+      ],
+      [
+        "Next is 2 4, which can be two quarter notes or one half note",
+        "which is 2 ways"
+      ],
+      [
+        "On to 3 4, which can be 3 quarter notes, a quarter note and a half note, or a half note and a quarter note",
+        "that's 3 ways. Noticing anything yet?"
+      ],
+      [
+        "and finally 4 4, which can be done... all these different ways",
+        "which is 5"
+      ]
+    ]
 
     for i in range(5):
       signature = [i, 4]
@@ -84,9 +117,15 @@ class Music(Scene):
       else:
         anim.to_corner(UL).shift(DOWN*2)
 
-      self.play(anim.shift(RIGHT * 0.25))
-      measureCount = MathTex(len(measures)).next_to(measures[0].staff.noteLines[2], LEFT)
-      self.play(Write(measureCount))
+      with self.voiceover(vos[i][0]):
+        self.play(anim.shift(RIGHT * 0.25))
+
+      count = MathTex(len(measures)).next_to(measures[0].staff.noteLines[2], LEFT)
+      measureCount = count
+      counts += [count]
+
+      with self.voiceover(vos[i][1]):
+        self.play(Write(measureCount))
 
       allMeasureGroups += [measures]
 
@@ -126,5 +165,5 @@ class Music(Scene):
       self.play(*[measures.animate.set_color(WHITE) for measures in [*aMeasures, *bMeasures, *cMeasures]])
       self.wait()
 
-    self.play(*[FadeOut(mob)for mob in self.mobjects])
+    self.play(*[FadeOut(mob) for mob in [*allMeasureGroups, *counts]])
     self.wait()
