@@ -8,26 +8,35 @@ STEM = 4
 # region ERRORS
 # TODO: consider adding more verbose output
 class NotEnoughBeats(Exception):
-  def __init__(self, error_beats, beats):
-    self.error_beats = error_beats
-    self.beats = beats
-
   def __str__(self):
-    return f"Not enough notes were provided to fill the measure. ({self.error_beats} instead of {self.beats})"
+    return f"Not enough notes were provided to fill the measure."
 
 # TODO: consider adding more verbose output
 class TooManyBeats(Exception):
-  def __init__(self, error_beats, beats):
-    self.error_beats = error_beats
-    self.beats = beats
-
   def __str__(self):
-    return f"Too many notes were provided to fill the measure. ({self.error_beats} instead of {self.beats})"
+    return f"Too many notes were provided to fill the measure."
   
 # TODO: consider adding more verbose output
 class InvalidNote(Exception):
   def __str__(self):
     return f"Invalid note provided"
+  
+# class NotEnoughBeats(Exception):
+#   def __init__(self, error_beats, beats):
+#     self.error_beats = error_beats
+#     self.beats = beats
+
+#   def __str__(self):
+#     return f"Not enough notes were provided to fill the measure. ({self.error_beats} instead of {self.beats})"
+
+# class TooManyBeats(Exception):
+#   def __init__(self, error_beats, beats):
+#     self.error_beats = error_beats
+#     self.beats = beats
+
+#   def __str__(self):
+#     return f"Too many notes were provided to fill the measure. ({self.error_beats} instead of {self.beats})"
+
 # endregion
   
 # region META
@@ -102,19 +111,16 @@ class NoteTypes:
   HALF = NoteData(2, HalfNote)
   QUARTER = NoteData(1, QuarterNote)
 
-class Measure(VMobject):
-  def __init__(self, notes=[], signature=[4,4], width=False, **kwargs):
+class Staff(VMobject):
+  def __init__(self, signature=[4,4], **kwargs):
     super().__init__(**kwargs)
-
-    # note lines
-    if not width:
-      width = max(signature[0], 2)
-
+    width = max(signature[0], 2)*4/signature[1]
+    
     self.noteLines = VGroup(
       *[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
     ).arrange(DOWN)
 
-    nLineSpacing = self.noteLines[0].get_start()[1] - self.noteLines[1].get_start()[1]
+    self.noteSize = self.noteLines[0].get_start()[1] - self.noteLines[1].get_start()[1]
 
     # bar lines
     self.barLines = VGroup(*[
@@ -125,48 +131,52 @@ class Measure(VMobject):
 
     # time signature
     self.signature = VGroup(
-      *[MathTex(signature[i]).scale_to_fit_height(2*nLineSpacing) for i in [0, 1]]
+      *[MathTex(signature[i]).scale_to_fit_height(2*self.noteSize) for i in [0, 1]]
     )
     self.signature[1].align_to(self.noteLines[-1].get_start(), DL)
     self.signature[0].next_to(self.signature[1], UP, buff=0).align_to(self.signature)
 
-    self.staff = VGroup(self.noteLines, self.barLines, self.signature)
-    self.add(self.staff)
+    self.add(self.noteLines, self.barLines, self.signature)
+    self.noteBuff = (self.width - 1)/(4*signature[0]/signature[1] + 1)
 
-    # notes
-    xLeft = self.signature[0].get_edge_center(RIGHT)[0]
-    xRight = self.barLines[1].get_edge_center(LEFT)[0]
-    noteRegionWidth = xRight - xLeft
-    x0 = self.signature[0].get_corner(UR)[0]
+class Measure(VMobject):
+  def __init__(self, notes=[], signature=[4,4], **kwargs):
+    super().__init__(**kwargs)
+    self.staff = Staff(signature)
 
-    noteMobjs = []
-    self.notes = VMobject()
+    noteMobs = []
 
     if len(notes):
       duration = 0
+      k = 0
       beatFactor = signature[1]/4
       measureLength = signature[0]/beatFactor
-      k = 0 # offset, used for spacing notes correctly
+      if notes[0].duration == measureLength:
+        if len(notes) > 1: raise TooManyBeats
 
-      for i, note in enumerate(notes):
-        if note.duration == measureLength:
-          x = x0 + noteRegionWidth/2
-        else:
-          x = x0 + (i+k+1)*noteRegionWidth/(width+1)
+        noteMobs += notes[0].vMobj(self.staff.noteSize)
+      else:
+        for i, note in enumerate(notes):
+          noteMob = note.vMobj(self.staff.noteSize)
+          if i == 0:
+            noteMob.next_to(self.staff.signature[0], RIGHT)
+          else:
+            buff = self.staff.noteBuff + (self.staff.noteBuff + noteMob.width)*k
+            noteMob.next_to(noteMobs[-1], RIGHT, buff=buff)
+            
+          noteMob.align_to(self.staff.noteLines[3], DOWN).shift(UP*self.staff.noteSize/2)
+          noteMobs += [noteMob]
+          k = note.duration - 1
+          duration += note.duration
 
-        if note.duration == NoteTypes.HALF.duration:
-          k += 1
-        
-        noteMobj = note.vMobj(nLineSpacing)
-        duration += note.duration * beatFactor
-          
-        if duration > signature[0]: 
-          raise(TooManyBeats(duration, signature[0]))
-          
-        noteMobjs += noteMobj.move_to([x, 0, 0]).align_to(self.noteLines[2], DOWN).shift(DOWN*nLineSpacing/2)
+        if duration > measureLength: raise TooManyBeats
+        if duration < measureLength: raise NotEnoughBeats
 
-      if duration < signature[0]:
-        raise(NotEnoughBeats(duration, signature[0]))
-      
-      self.notes = VGroup(*noteMobjs)
-      self.add(self.staff, self.notes)
+    print("signature:", signature)
+    print("measureLength:", measureLength)
+    print("beatFactor:", beatFactor)
+    print("duration:", duration)
+    print()
+
+    self.notes = VGroup(*noteMobs)
+    self.add(self.staff, self.notes)
