@@ -47,7 +47,7 @@ class NoteHead(VMobject):
 		self.open = open
 
 		if open:
-			hole = Ellipse(1.618, 0.618, color=color).set_opacity(1)
+			hole = Ellipse(1.618, 0.618, color=color, stroke_width=1).set_opacity(1)
 			head = Cutout(head, hole, color=color, fill_opacity=1)
 			
 		self.become(head)

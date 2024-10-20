@@ -34,17 +34,37 @@ class Music(VoiceoverScene):
     demo = VGroup(measure, notes).arrange(DOWN, buff=1).center()
 
     with self.voiceover(
-      """First of all, we're only going to consider time signatures where the quarter note gets the beat.
-      I'm choosing that mainly because we're more familiar with it."""
+      """First of all, we're only going to consider time signatures where the quarter note gets the beat."""
     ):
       self.play(Write(demo[0]))
       self.wait()
 
+    # TODO: Add transformations that match the following voiceover, so the signature changes
+    
+    with self.voiceover("So, 2 4,"):
+      self.play(demo[0].staff.signature[1].animate.set_color(YELLOW_D))
+
+    with self.voiceover("3 4,"):
+      newMeasure = Measure(signature=[3,4]).move_to(measure.get_center())
+      newMeasure.staff.signature[1].set_color(YELLOW_D)
+      self.play(Transform(measure, newMeasure))
+
+    with self.voiceover("4 4,"):
+      newMeasure = Measure(signature=[4,4]).move_to(measure.get_center())
+      newMeasure.staff.signature[1].set_color(YELLOW_D)
+      self.play(Transform(measure, newMeasure))
+
+    with self.voiceover("and so on. I'm choosing that mainly because we're more familiar with them."):
+      newMeasure = Measure(signature=[2,4]).move_to(measure.get_center())
+      self.play(Transform(measure, newMeasure))
+
     with self.voiceover(
-      """Our only real rule to the problem is we're only going to use two notes: a short and a long,
-      which in our case would be the quarter note and the half note. This works any time the 
-      short note is the one that gets the beat, and the long note is twice the length of the short note."""
+      """Our only real defining rule is we're only going to use notes of two durations:
+      a short and a long, which in our <bookmark mark='case'/>case would be the quarter note and the half note.
+      This works for any time signature as long as the short note is the one that gets the beat,
+      and the long note is twice the length of the short note."""
     ):
+      self.wait_until_bookmark('case')
       self.play(Write(demo[1]))
       self.wait()
 
@@ -56,8 +76,8 @@ class Music(VoiceoverScene):
       self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
       self.wait()
 
-      self.play(FadeOut(newMeasure.notes))
-      self.wait()
+    self.play(FadeOut(newMeasure.notes))
+    self.wait()
 
     with self.voiceover(
       """Or one half note"""
@@ -67,39 +87,37 @@ class Music(VoiceoverScene):
       self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
       self.wait()
 
-      self.play(FadeOut(newMeasure.notes))
-      self.wait()
+    self.play(FadeOut(newMeasure.notes))
+    self.wait()
 
     with self.voiceover("Alright, let's go through them from the start"):
       self.play(FadeOut(title), FadeOut(demo))
       self.wait()
 
-    return
-  
     # LAYOUT
     allMeasureGroups = []
     counts = []
 
     vos = [
       [
-        "So we'll start with time signature 0 4, which can't fit any notes",
-        "but there's exactly one way to do that, I suppose"
+        "Not that it's a real time signature, but to make things neat, we'll start with  0 4, which can't fit any notes",
+        "but there's exactly one way to do that"
       ],
       [
         "Then we'll move on to 1 4. We can only fill that with a quarter note",
-        "So that's 1 too"
+        "So that's 1 as well"
       ],
       [
         "Next is 2 4, which can be two quarter notes or one half note",
-        "which is 2 ways"
+        "and that's 2 ways"
       ],
       [
-        "On to 3 4, which can be 3 quarter notes, a quarter note and a half note, or a half note and a quarter note",
+        "On to 3 4, which can be 3 quarter notes, a half note and a quarter note, or a quarter note and a half note",
         "that's 3 ways. Noticing anything yet?"
       ],
       [
         "and finally 4 4, which can be done... all these different ways",
-        "which is 5"
+        "of which there are 5"
       ]
     ]
 
@@ -108,7 +126,8 @@ class Music(VoiceoverScene):
 
       measures = VGroup(*[Measure(m, signature) for m in fibonacciNotes(signature)])
       measures.arrange(RIGHT).scale(0.6 if i == 4 else 1).center().to_edge(UP)
-      self.play(Write(measures))
+      with self.voiceover(vos[i][0]):
+        self.play(Write(measures))
 
       anim = measures.animate.scale(1 if i == 4 else 0.6)
 
@@ -117,14 +136,13 @@ class Music(VoiceoverScene):
       else:
         anim.to_corner(UL).shift(DOWN*2)
 
-      with self.voiceover(vos[i][0]):
+      with self.voiceover(vos[i][1]):
         self.play(anim.shift(RIGHT * 0.25))
 
-      count = MathTex(len(measures)).next_to(measures[0].staff.noteLines[2], LEFT)
-      measureCount = count
-      counts += [count]
+        count = MathTex(len(measures)).next_to(measures[0].staff.noteLines[2], LEFT)
+        measureCount = count
+        counts += [count]
 
-      with self.voiceover(vos[i][1]):
         self.play(Write(measureCount))
 
       allMeasureGroups += [measures]
@@ -132,6 +150,36 @@ class Music(VoiceoverScene):
     self.wait()
 
     # HIGHLIGHT
+    vos = [
+      [
+        """Starting at the first 3 sets of measures, we can create the third by making measures from
+        the ones one beat shorter""",
+        """and then add another beat, which is a quarter note""",
+        """Or we can take all the measures with two fewer beats (that measure happens to be empty),""",
+        """but we can still add two beats, or a half note, to those and make everything in our current row"""
+      ],
+      [
+        "Next we can take the row of 2 4",
+        "Each with one additional quarter note",
+        "And the row of 1 4",
+        "with half notes to match, to make the row of 3 4"
+      ],
+      [
+        "and again the 3 4 row",
+        "with quarter notes each",
+        "and the 2 4 row",
+        "with half notes each, form the final row"
+      ]
+    ]
+
+    with self.voiceover(
+      """So what's going on here? Well, let's see if we can build any of these sets from
+      any of the sets that came before them,
+      because that's kind of how the Fibonacci numbers work, at least, generally.
+      But we're trying something out! That's a big part of eventually figuring things out."""
+    ):
+      self.wait_for_voiceover()
+
     for i in range(3):
       aMeasures = allMeasureGroups[i]
       bMeasures = allMeasureGroups[i+1]
@@ -140,30 +188,50 @@ class Music(VoiceoverScene):
       cMeasures = [*aInspiredMeasures, *bInspiredMeasures]
 
       # Show the notes from the previous measures in ours
-      self.play(
-        *[measure.notes.animate.set_color(ORANGE) for measure in bMeasures],
-        *[measure.notes[:-1].animate.set_color(ORANGE) for measure in bInspiredMeasures]
-      )
-      self.wait()
+      with self.voiceover(vos[i][0]):
+        self.play(
+          *[measure.animate.set_color(ORANGE) for measure in bMeasures],
+          *[measure.notes[:-1].animate.set_color(ORANGE) for measure in bInspiredMeasures],
+          *[measure.staff.animate.set_color(ORANGE) for measure in bInspiredMeasures]
+        )
+        self.wait()
 
       # Show the notes we add to complete them
-      self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in bInspiredMeasures])
-      self.wait(2)
+      with self.voiceover(vos[i][1]):
+        self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in bInspiredMeasures])
+        self.wait(2)
 
       # Show the notes from the twice-previous measures in ours
-      self.play(
-        *[measure.notes.animate.set_color(RED) for measure in aMeasures],
-        *[measure.notes[:-1].animate.set_color(RED) for measure in aInspiredMeasures]
-      )
-      self.wait()
+      with self.voiceover(vos[i][2]):
+        self.play(
+          *[measure.animate.set_color(RED) for measure in aMeasures],
+          *[measure.notes[:-1].animate.set_color(RED) for measure in aInspiredMeasures],
+          *[measure.staff.animate.set_color(RED) for measure in aInspiredMeasures]
+        )
+        self.wait()
 
       # Show the notes we add to complete them
-      self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in aInspiredMeasures])
-      self.wait(2)
+      with self.voiceover(vos[i][3]):
+        self.play(*[measure.notes[-1].animate.set_color(YELLOW) for measure in aInspiredMeasures])
+        self.wait(2)
 
       # Clear everything
       self.play(*[measures.animate.set_color(WHITE) for measures in [*aMeasures, *bMeasures, *cMeasures]])
       self.wait()
 
-    self.play(*[FadeOut(mob) for mob in [*allMeasureGroups, *counts]])
+    definition = MathTex(r"\text{\# of notes from\ } [", "|||", ",", "|||", r"] \text{\ in a measure of\ } \frac{n}{4}: F_{n+1}", font_size=55).to_edge(UP)
+    definition[1].become(QuarterNote(0.2).move_to(definition[1].get_center()))
+    definition[3].become(HalfNote(0.2).move_to(definition[3].get_center()))
+
+    with self.voiceover(
+      """So remember, when the Fibonacci numbers show up,
+      there's usually the Fibonacci pattern at work, somewhere,
+      that the next term in the sequence should relate to the sum of the previous two"""
+    ):
+      self.play(Write(definition))
+
+    self.play(
+      FadeOut(definition),
+      *[FadeOut(mob) for mob in [*allMeasureGroups, *counts]], lag_ratio=0.5
+    )
     self.wait()
