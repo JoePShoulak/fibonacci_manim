@@ -46,7 +46,7 @@ class Music(Scene):
         anim.to_corner(UL).shift(DOWN*2)
 
       self.play(anim.shift(RIGHT * 0.25))
-      measureCount = MathTex(len(measures)).next_to(measures[0].noteLines[2], LEFT)
+      measureCount = MathTex(len(measures)).next_to(measures[0].staff.noteLines[2], LEFT)
       self.play(Write(measureCount))
 
       allMeasureGroups += [measures]

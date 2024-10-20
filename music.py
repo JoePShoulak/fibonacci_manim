@@ -172,11 +172,5 @@ class Measure(VMobject):
         if duration > measureLength: raise TooManyBeats
         if duration < measureLength: raise NotEnoughBeats
 
-    print("signature:", signature)
-    print("measureLength:", measureLength)
-    print("beatFactor:", beatFactor)
-    print("duration:", duration)
-    print()
-
     self.notes = VGroup(*noteMobs)
     self.add(self.staff, self.notes)
