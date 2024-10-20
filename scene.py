@@ -2,7 +2,8 @@ from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.azure import AzureService
 
-from music import Measure, QuarterNote, HalfNote, NoteTypes as NT
+from music import *
+from music import NoteTypes as NT
 from helper import *
 
 config.max_files_cached = -1
@@ -116,7 +117,7 @@ class Music(VoiceoverScene):
         "that's 3 ways. Noticing anything yet?"
       ],
       [
-        "and finally 4 4, which can be done... all these different ways",
+        "finally 4 4, which can be done... all these different ways",
         "of which there are 5"
       ]
     ]
@@ -219,9 +220,12 @@ class Music(VoiceoverScene):
       self.play(*[measures.animate.set_color(WHITE) for measures in [*aMeasures, *bMeasures, *cMeasures]])
       self.wait()
 
-    definition = MathTex(r"\text{\# of notes from\ } [", "|||", ",", "|||", r"] \text{\ in a measure of\ } \frac{n}{4}: F_{n+1}", font_size=55).to_edge(UP)
+    definition = MathTex(r"\text{\# of notes from\ } [", "|||", ",", "|||", r"] \text{\ in a measure of\ } ", "|||", ": F_{n+1}", font_size=55).to_edge(UP)
     definition[1].become(QuarterNote(0.2).move_to(definition[1].get_center()))
     definition[3].become(HalfNote(0.2).move_to(definition[3].get_center()))
+    sig = Signature(0.4, ["n", 4]).move_to(definition[5].get_center())
+    sig[0].scale(0.8)
+    definition[5].become(sig)
 
     with self.voiceover(
       """So remember, when the Fibonacci numbers show up,

@@ -98,10 +98,17 @@ class NoteTypes:
 	HALF = NoteData(2, HalfNote)
 	QUARTER = NoteData(1, QuarterNote)
 
-class Staff(VMobject):
-	def __init__(self, signature=[4,4], **kwargs):
+class Signature(VMobject):
+	def __init__(self, size, signature=[4,4], **kwargs):
 		super().__init__(**kwargs)
-		width = max(signature[0], 2)*4/signature[1]
+		self.become(MathTex(signature[0]).scale_to_fit_height(size))
+		self.add(MathTex(signature[1]).scale_to_fit_height(size))
+		self.arrange(DOWN, buff=0)
+
+class Staff(VMobject):
+	def __init__(self, time_signature=[4,4], **kwargs):
+		super().__init__(**kwargs)
+		width = max(time_signature[0], 2)*4/time_signature[1]
 		
 		self.noteLines = VGroup(
 			*[Line([-width/2, 0, 0], [width/2, 0, 0], stroke_width=THIN) for i in range(5)]
@@ -117,14 +124,11 @@ class Staff(VMobject):
 		])
 
 		# time signature
-		self.signature = VGroup(
-			*[MathTex(signature[i]).scale_to_fit_height(2*self.noteSize) for i in [0, 1]]
-		)
-		self.signature[1].align_to(self.noteLines[-1].get_start(), DL)
-		self.signature[0].next_to(self.signature[1], UP, buff=0).align_to(self.signature)
+		self.signature = Signature(2*self.noteSize, time_signature)
+		self.signature.next_to(self.barLines[0], RIGHT, buff=0)
 
 		self.add(self.noteLines, self.barLines, self.signature)
-		self.noteBuff = (self.width - 1)/(4*signature[0]/signature[1] + 1)
+		self.noteBuff = (self.width - 1)/(4*time_signature[0]/time_signature[1] + 1)
 
 class Measure(VMobject):
 	def __init__(self, notes=[], signature=[4,4], **kwargs):
