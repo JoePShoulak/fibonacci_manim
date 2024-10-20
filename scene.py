@@ -1,6 +1,8 @@
 from manim import *
-from music import Measure, NoteTypes as NT
+from music import Measure, QuarterNote, HalfNote, NoteTypes as NT
 import itertools
+
+config.max_files_cached = -1
 
 def chooseKFromArray(k, array):
   result = [*array]
@@ -28,6 +30,43 @@ def fibonacciNotes(signature):
 
 class Music(Scene):
   def construct(self):
+    # QUESTION
+    title = Text("How Many Notes Can We Fit?", font_size=55).to_edge(UP)
+    self.play(Write(title))
+    self.wait()
+
+    measure = Measure(signature=[2, 4])
+    notes = VGroup(
+      QuarterNote(measure.staff.noteSize),
+      HalfNote(measure.staff.noteSize)
+    ).arrange(RIGHT, buff=1)
+    demo = VGroup(measure, notes).arrange(DOWN, buff=1).center()
+
+    self.play(Write(demo[0]))
+    self.wait()
+
+    self.play(Write(demo[1]))
+    self.wait()
+
+    newMeasure = Measure(notes=[NT.QUARTER, NT.QUARTER], signature=[2, 4]).align_to(demo[0], DOWN)
+    noteCopy = VGroup(*[demo[1][0].copy() for _ in range(2)])
+    self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
+    self.wait()
+
+    self.play(FadeOut(newMeasure.notes))
+    self.wait()
+
+    newMeasure = Measure(notes=[NT.HALF], signature=[2, 4]).align_to(demo[0], DOWN)
+    noteCopy = demo[1][1].copy()
+    self.play(TransformMatchingShapes(noteCopy, newMeasure.notes))
+    self.wait()
+
+    self.play(FadeOut(newMeasure.notes))
+    self.wait()
+
+    self.play(FadeOut(title), FadeOut(demo))
+    self.wait()
+
     # LAYOUT
     allMeasureGroups = []
 
@@ -86,3 +125,6 @@ class Music(Scene):
       # Clear everything
       self.play(*[measures.animate.set_color(WHITE) for measures in [*aMeasures, *bMeasures, *cMeasures]])
       self.wait()
+
+    self.play(*[FadeOut(mob)for mob in self.mobjects])
+    self.wait()
