@@ -2,8 +2,8 @@ from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.azure import AzureService
 
-from music import *
-from music import NoteTypes as NT
+from music_score import *
+from music_score import NoteTypes as NT
 from helper import *
 
 class Music(VoiceoverScene):
