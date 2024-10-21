@@ -4,7 +4,7 @@ from math import sqrt
 rabbit_path = "rabbit.svg"
 
 PHI = (1+sqrt(5))/2
-RABBIT_SIZE = 2
+RABBIT_SIZE = 1
 
 def rabbitsSvg():
     rabbit = SVGMobject(rabbit_path, height=RABBIT_SIZE, fill_color=WHITE, stroke_color=BLACK, stroke_width=5, stroke_opacity=1)
@@ -39,6 +39,9 @@ class RabbitTree:
         if self.left: generation += self.left.get_generation(n - 1)
         if self.right: generation += self.right.get_generation(n - 1)
         return generation
+    
+    def get_generation_as_vgroup(self, n):
+        return VGroup(*[rabbit.data.get_image() for rabbit in self.get_generation(n)]).arrange(RIGHT)
 
     def get_leaves(self):
         if self.is_leaf():
@@ -74,53 +77,39 @@ class RabbitTree:
 
         self.iterate(n-1)
 
-def get_next_gen_mobs(row):
-    copies = []
-    for rabbit in row:
-        if rabbit.height < Rabbit().get_image().height:
-            copies += [rabbit.copy(), rabbit.copy()]
-        else:
-            copies += rabbit.copy()
-
-    return copies
-
 class Rabbits(MovingCameraScene):
     def construct(self):
         scene_width = config.frame_width
         scene_height = config.frame_height 
 
         tree = RabbitTree()
-
-        iterations = 4
-
-        tree.iterate(iterations)
-
+        tree.iterate(4)
         allRows = VGroup()
 
-        def camera_updater_force():
-            anim = self.camera.frame.animate.move_to(allRows.get_center())
-                
-            if allRows.height > scene_height - 1:
-                anim.scale_to_fit_height(allRows.height+1)
+        def center_camera():
+            return self.camera.frame.animate.move_to(allRows.get_center())
 
-            return anim
-        
-        def camera_updater(mobj):
-            mobj.move_to(allRows.get_center())
+        def animateIteration(n, allRows):
+            allRows += tree.get_generation_as_vgroup(n).next_to(allRows[-1], DOWN)
+            i = 0
+            for r, mob in zip(tree.get_generation(n-1), allRows[-2].submobjects):
+                if r.data.adult:
+                    print("yes")
+                    self.play(Transform(VGroup(mob.copy(), mob.copy()), allRows[-1][i:i+2]), center_camera())
+                    i += 2
+                else:
+                    print("no")
+                    self.play(Transform(VGroup(mob.copy()), allRows[-1][i]), center_camera())
+                    i += 1
 
-        rabbits = tree.get_generation(1)
-        mobjs = VGroup(*[r.data.image for r in rabbits])
-        allRows += mobjs
-        self.play(Write(mobjs, stroke_color=WHITE))
-        self.wait()
+        allRows += tree.get_generation_as_vgroup(1)
+        self.play(Write(allRows[0]))
 
-        for i in range(1, iterations+1):
-            rabbits = tree.get_generation(i+1)
-            mobjs = VGroup(*[r.data.image for r in rabbits]).arrange(RIGHT).next_to(allRows[-1], DOWN)
-            allRows += mobjs
-            self.play(Transform(VGroup(*get_next_gen_mobs(allRows[-2])), mobjs), camera_updater_force())
-            self.wait()
-
-        self.wait()
-
-# Fix the gact that it's not always adult rabbits that spawn off a pair
+        print("it start")
+        animateIteration(2, allRows)
+        print("it start")
+        animateIteration(3, allRows)
+        print("it start")
+        animateIteration(4, allRows)
+        print("it start")
+        animateIteration(5, allRows)
