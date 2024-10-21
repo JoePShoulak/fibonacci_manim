@@ -1,0 +1,3 @@
+[submodule "music_score"]
+	path = music_score
+	url = https://github.com/JoePShoulak/music_score
