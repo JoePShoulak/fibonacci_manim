@@ -28,17 +28,13 @@ scrub: clean
 
 nuke: scrub
 	rm -rf ./exports/*
-
-test:
-	manim -a$(Q) test.py
 	
-# %.txt:
-# 	sed 's/FOLDER/$(FOLDER)/g' sceneLists/master.txt > $@
+%.txt:
+	sed 's/FOLDER/$(FOLDER)/g' sceneLists/master.txt > $@
 
-# output_%.mp4: %.txt
-# 	ffmpeg -f concat -safe 0 -y -i $< -c:v copy -c:a aac -b:a 192k -map 0:v -map 0:a? exports/output_$(Q).mp4
+output_%.mp4: %.txt
+	ffmpeg -f concat -safe 0 -y -i $< -c:v copy -c:a aac -b:a 192k -map 0:v -map 0:a? exports/output_$(Q).mp4
 
-# export: output_$(Q).mp4
+export: output_$(Q).mp4
 
-.PHONY: render all clean scrub nuke 
-# .PHONY: export
+.PHONY: render all clean scrub nuke export

@@ -1,5 +1,5 @@
 import itertools
-from music import NoteTypes as NT
+from music_score import NoteTypes as NT
 
 # region MUSIC
 def chooseKFromArray(k, array):

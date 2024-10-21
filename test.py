@@ -1,6 +1,6 @@
 from manim import *
-from music import *
-from music import NoteTypes as NT
+from music_score import *
+from music_score import NoteTypes as NT
 
 # class MeasureTest(Scene):
 #   def construct(self):
