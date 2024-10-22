@@ -81,10 +81,9 @@ class Pascal(MovingCameraScene):
 
         fibHexes = VGroup()
 
-        for row in pyramid[1:]:
-            fibHexes += TexHex(color=ORANGE).scale(0.4).next_to(row, LEFT, buff=0)
+        for i, row in enumerate(pyramid[1:]):
+            fibHexes += TexHex(color=YELLOW_D if i % 2 else RED, stroke_opacity=0.75).scale(0.4).next_to(row, LEFT, buff=0)
 
         self.play(Write(fibHexes))
 
         self.wait()
-
