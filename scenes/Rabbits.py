@@ -261,4 +261,6 @@ class Rabbits(VoiceoverScene, MovingCameraScene):
         ):
             self.wait_for_voiceover()
 
-        self.play(FadeOut(allRows), FadeOut(nums))
+        # HACK
+        self.play(*[FadeOut(mob)for mob in self.mobjects])
+        

@@ -115,15 +115,13 @@ class Bees(VoiceoverScene, MovingCameraScene):
             return anim
 
         # Intro
-        # with self.voiceover(
-        #     """Let's start with the way Fibonacci himself talked about these numbers in his book, the Liber Abaci.
-        #     How do rabbits breed? Like most problems we'll consider in this video, this is not the literal 
-        #     best mathematics for tracking mammal populations, but more a metaphor for an interesting relationship
-        #     of things, in this case rabbits, and the numbers that show up there."""
-        # ):
-        title = Text("...Bees? BEES!!!", font_size=55).to_edge(UP)
-        self.play(Write(title))
-        self.wait()
+        with self.voiceover(
+            """Now, I know what you're thinking, and being allergic to them myself, I'm not a huge fan of bees either.
+            But this pattern is really cool, because it's basically the rabbit pattern but upside down."""
+        ):
+            title = Text("...Bees? BEES!!!", font_size=55).to_edge(UP)
+            self.play(Write(title))
+            self.wait()
 
         maleRuleBot = Bee(female=False).get_image().scale(0.5)
         maleRuleTop = Bee(female=True).get_image().scale(0.5)
@@ -131,7 +129,7 @@ class Bees(VoiceoverScene, MovingCameraScene):
         maleLine = Line(maleRuleTop.get_edge_center(DOWN), maleRuleBot.get_edge_center(UP)).scale(1/PHI)
         maleRule += maleLine
 
-        femaleRuleBot = Bee(female=False).get_image().scale(0.5)
+        femaleRuleBot = Bee(female=True).get_image().scale(0.5)
         femaleRuleTop = VGroup(
             Bee(female=True).get_image().scale(0.5),
             Bee(female=False).get_image().scale(0.5),
@@ -140,151 +138,95 @@ class Bees(VoiceoverScene, MovingCameraScene):
         femaleLine = Line(femaleRuleTop.get_edge_center(DOWN), femaleRuleBot.get_edge_center(UP)).scale(1/PHI)
         femaleRule += femaleLine
 
-        maleCopy = maleRule[1].copy()
-        self.play(Write(maleRule[1]))
-        self.wait()
-        self.play(Transform(maleCopy, maleRule[::2]))
-        self.wait()
-        self.remove(maleCopy)
-        self.play(maleRule.animate.to_edge(LEFT))
-        self.wait()
+        with self.voiceover(
+            """This time, we're going to start by laying out the rules."""
+        ):
+            self.wait_for_voiceover()
 
-        femaleCopy = femaleRule[1].copy()
-        self.play(Write(femaleRule[1]))
-        self.wait()
-        self.play(Transform(femaleCopy, femaleRule[::2]))
-        self.wait()
-        self.remove(femaleCopy)
-        self.play(femaleRule.animate.to_edge(RIGHT))
-        self.wait()
+        with self.voiceover(
+            """Male bees, which we'll denote in yellow, come from an unfertilized egg, so only one female parent."""
+        ):
+            femaleCopy = maleRule[1].copy()
+            self.play(Write(maleRule[1]))
+            self.wait()
+            self.play(Transform(femaleCopy, maleRule[::2]))
+            self.wait_for_voiceover()
+            self.remove(femaleCopy)
+            self.play(maleRule.animate.to_edge(LEFT))
+            self.wait()
 
+        with self.voiceover(
+            """Female bees, on the other hand, come from fertilized eggs, and therefore have one parent
+            of each sex. We'll color the females red."""
+        ):
+            femaleCopy = femaleRule[1].copy()
+            self.play(Write(femaleRule[1]))
+            self.wait()
+            self.play(Transform(femaleCopy, femaleRule[::2]))
+            self.wait_for_voiceover()
+            self.remove(femaleCopy)
+            self.play(femaleRule.animate.to_edge(RIGHT))
+            self.wait()
 
-        # # Layout
-        # allRows += tree.get_generation_as_vgroup(1)
-        # # with self.voiceover("We'll start with one pair of young rabbits."):
-        # self.play(FadeOut(title), Write(allRows[0]), Write(maleText))
+        # Layout
+        allRows += tree.get_generation_as_vgroup(1)
+        with self.voiceover("So let's start with one male bee"):
+            self.play(FadeOut(title), Write(allRows[0]))
 
-        # anim = animateIteration(2, allRows)
-        # # with self.voiceover(
-        # #     """Because they're young, in one generation's time they simply
-        # #     <bookmark mark='grow'/>grow into female rabbits."""
-        # # ):
-        # # self.wait_until_bookmark('grow')
-        # self.play(*anim)
+        anim = animateIteration(2, allRows)
+        with self.voiceover(
+            """Because it's a male bee, it must have had one female parent"""
+        ):
+            self.play(*anim)
             
-        # anim = animateIteration(3, allRows)
-        # # with self.voiceover(
-        # #     """As female rabbits, they <bookmark mark='survive'/> survive into the next generation,
-        # #     and also breed to produce a new pair of rabbits. 
-        # #     And to emphasize the fact of the metaphor here, we're not considering things like inbreeding.
-        # #     We defined a simple rule, and we're seeing what happens."""
-        # # ):
-        # # self.wait_until_bookmark('survive')
-        # self.play(*anim[0:2])
+        anim = animateIteration(3, allRows)
+        with self.voiceover(
+            """This female parent must, itself, <bookmark mark='have'/>have two parents."""
+        ):
+            self.wait_until_bookmark('have')
+            self.play(*anim[0:2])
 
-        # anim = animateIteration(4, allRows)
-        # # with self.voiceover(
-        # #     """Now things start getting interesting. The <bookmark mark='first'/>first pair,
-        # #     being females, both survive and breed. The <bookmark mark='second'/>second pair, being young,
-        # #     only grow up to become female rabbits."""
-        # # ):
-        # # self.wait_until_bookmark('first')
-        # self.play(*anim[0:2])
-        # # self.wait_until_bookmark('second')
-        # self.play(anim[2])
+        anim = animateIteration(4, allRows)
+        with self.voiceover(
+            """This grandmother bee must also have <bookmark mark='two'/>two parents,
+            while the grandfather must have only <bookmark mark='one'/>one female parent"""
+        ):
+            self.wait_until_bookmark('two')
+            self.play(*anim[0:2])
+            self.wait_until_bookmark('one')
+            self.play(anim[2])
 
-        # anim = animateIteration(5, allRows)
-        # # with self.voiceover("And so on for the next generation"):
-        # self.play(*anim[0:2])
-        # self.play(anim[2])
-        # self.play(anim[3])
-        # self.wait()
+        anim = animateIteration(5, allRows)
+        with self.voiceover("And so on for the next generation"):
+            self.play(*anim[0:2])
+            self.play(anim[2])
+            self.play(anim[3])
+            self.wait()
 
-        # animateIteration(6, allRows, skip_animation=True)
-        # animateIteration(7, allRows, skip_animation=True)
-        # animateIteration(8, allRows, skip_animation=True)
-        # animateIteration(9, allRows, skip_animation=True)
-        # # with self.voiceover("And all the ones after that"):
-        # tempH, tempC = self.camera.frame.height, self.camera.frame.get_center()
-        # self.play(update_camera(), FadeIn(allRows[5:]))
-        # self.wait(3)
+        animateIteration(6, allRows, skip_animation=True)
+        animateIteration(7, allRows, skip_animation=True)
+        animateIteration(8, allRows, skip_animation=True)
+        animateIteration(9, allRows, skip_animation=True)
+        with self.voiceover("And all the ones after that"):
+            tempH, tempC = self.camera.frame.height, self.camera.frame.get_center()
+            self.play(update_camera(), FadeIn(allRows[5:]))
+            self.wait(3)
 
-        # self.play(self.camera.frame.animate.scale_to_fit_height(tempH).move_to(tempC), FadeOut(allRows[5:]))
-        # self.wait()
+            self.play(
+                self.camera.frame.animate.scale_to_fit_height(tempH).move_to(tempC),
+                FadeOut(allRows[5:]),
+                FadeOut(maleRule),
+                FadeOut(femaleRule)
+            )
+            self.wait()
 
-        # Counting
-        # nums = VGroup()
-        # with self.voiceover("So let's count these up, and see what's going on here"):
-        #     for i, row in enumerate(allRows.submobjects):
-        #         if i >= 2:
-        #             num = MathTex(len(row), "=", len(allRows[i-1]), "+", len(allRows[i-2]), font_size=89)
-        #         else:
-        #             num = MathTex(len(row), font_size=89)
-        #         nums += num.next_to(row, LEFT).to_edge(LEFT).shift(LEFT * 3)
+        with self.voiceover(
+            """The analysis of this pattern is very similar to the last one, and we have a lot more to get to,
+            so let's move on."""
+        ):
+            self.wait_for_voiceover()
 
-        # self.play(*[Write(num[0]) for num in nums], self.camera.frame.animate.shift(LEFT*1.5))
-
-        # animationVOs = [
-        #     [
-        #         """So we know 1 plus 1 is 2, and that those are the beginning of the Fibonacci numbers,
-        #         but let's make what's happening more clear.""",
-        #         """We're getting one of those ones by the number of rabbits in the row previous""",
-        #         """And another from the row previous to that. Okay, that's still probably not more novel,
-        #         but let's think of it a slightly different way. It'll help if we see the next example first."""
-        #     ],
-        #     # TODO need a better explanation here
-        #     [ 
-        #         """So, again, 1 and 2 is 3, nothing groundbreaking here.""",
-        #         """But if you think about it as actually taking these two rabbits from the row above us,""",
-        #         """and the one from two rows ago, you'll see we're doing more than combining numbers, we're basically combining lists!
-        #         One way of thinking about how this works is that every rabbit from one generation ago survives,
-        #         and every rabbit from two generations ago produces offspring. For every rabbit two generations
-        #         ago that could breed, there's one rabbit in the last generation that couldn't,
-        #         which is why the number of young and female rabbits stays consistent when combining the rows.""",
-        #     ],
-        #     [
-        #         """And again,""",
-        #         """We can take these 3 rabbits from row 4,""",
-        #         """and these 2 rabbits from row 3 to create row 5""",
-        #     ],
-        # ]
-
-        # # Animation
-        # for i in range(3):
-        #     with self.voiceover(animationVOs[i][0]):
-        #         self.play(
-        #             nums[i+2][0].animate.set_color(ORANGE),
-        #             FadeIn(nums[i+2][1:].set_color(ORANGE))
-        #         )
-                
-        #     with self.voiceover(animationVOs[i][1]):
-        #         self.play(
-        #             allRows[i+1].animate.set_fill_color(RED),
-        #             allRows[i+2][:len(allRows[i+1])].animate.set_fill_color(RED),
-        #             nums[i+1][0].animate.set_color(RED),
-        #             nums[i+2][2].animate.set_color(RED),
-        #         )
-
-        #     with self.voiceover(animationVOs[i][2]):
-        #         self.play(
-        #             allRows[i].animate.set_fill_color(YELLOW_D),
-        #             allRows[i+2][len(allRows[i+1]):].animate.set_fill_color(YELLOW_D),
-        #             nums[i][0].animate.set_color(YELLOW_D),
-        #             nums[i+2][4].animate.set_color(YELLOW_D)
-        #         )
-
-        #     self.play(
-        #         allRows[:5].animate.set_fill_color(WHITE),
-        #         *[num[0].animate.set_color(WHITE) for num in nums],
-        #         FadeOut(nums[i+2][1:])
-        #     )
-
-        #     self.wait()
-
-        # # Outro
-        # with self.voiceover(
-        #     """Now that we have the most historical case out of the way, let's move into some others."""
-        # ):
-        #     self.wait_for_voiceover()
-
-        # self.play(FadeOut(allRows), FadeOut(nums))
+        # HACK
+        self.play(*[FadeOut(mob)for mob in self.mobjects])
+        self.wait()
+        
