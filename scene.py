@@ -9,3 +9,5 @@ class MusicScene(Music):
 class RabbitsScene(Rabbits):
     pass
 
+class BeesScene(Bees):
+    pass
